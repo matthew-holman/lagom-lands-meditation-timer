@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:provider/provider.dart';
+import '../controllers/timer_controller.dart';
+import '../managers/audio_manager.dart';
+import '../widgets/timer_display.dart';
 import '../state.dart';
 
 class TimerPage extends StatefulWidget {
@@ -10,53 +12,45 @@ class TimerPage extends StatefulWidget {
   TimerPageState createState() => TimerPageState();
 }
 
-class TimerPageState extends State<TimerPage> {
+class TimerPageState extends State<TimerPage> with SingleTickerProviderStateMixin {
+  late TimerController _timerController;
+  late AudioManager _audioManager;
   bool isPlaying = false;
-  bool _isFading = false;
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  late AnimationController _animationController;
 
-  Future<void> _fadeIn() async {
-    if (_isFading) return;
-    _isFading = true;
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 60),
+    );
+    _audioManager = AudioManager();
+    _timerController = TimerController(
+      remainingTime: 60,
+      animationController: _animationController,
+      onTimerComplete: _onTimerFinished,
+    );
+  }
 
-    for (double vol = 0.0; vol <= 1.0; vol += 0.1) {
-      await _audioPlayer.setVolume(vol);
-      await Future.delayed(const Duration(milliseconds: 25));
-    }
-
+  Future<void> _onTimerFinished() async {
+    await _audioManager.playBeep();
+    await _audioManager.fadeOut();
     setState(() {
-      _isFading = false;
+      isPlaying = false;
     });
   }
 
-  Future<void> _fadeOut() async {
-    if (_isFading) return;
-    _isFading = true;
-
-    for (double vol = 1.0; vol >= 0.0; vol -= 0.1) {
-      await _audioPlayer.setVolume(vol);
-      await Future.delayed(const Duration(milliseconds: 25));
-    }
-
-    await _audioPlayer.stop();
-    setState(() {
-      _isFading = false;
-    });
-  }
-
-  Future<void> _toggleAudio(String selectedSound) async {
-    if (_isFading) return; // Prevent multiple presses
-
+  Future<void> _toggleTimer(String selectedSound) async {
     if (isPlaying) {
-      await _fadeOut();
+      _timerController.stopTimer();
+      await _audioManager.fadeOut();
     } else {
-      await _audioPlayer.setSource(AssetSource(selectedSound));
-      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
-      await _audioPlayer.setVolume(0.0);
-      await _audioPlayer.play(AssetSource(selectedSound));
-      await _fadeIn();
+      await _audioManager.playSound(selectedSound);
+      await _audioManager.fadeIn();
+      _timerController.startTimer();
+      _animationController.forward(from: 0.0);
     }
-
     setState(() {
       isPlaying = !isPlaying;
     });
@@ -64,23 +58,31 @@ class TimerPageState extends State<TimerPage> {
 
   @override
   void dispose() {
-    _audioPlayer.dispose();
+    _timerController.dispose();
+    _audioManager.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    final theme = Theme.of(context).colorScheme;
 
     return Scaffold(
       body: Center(
-        child: ElevatedButton(
-          onPressed: _isFading ? null : () => _toggleAudio(appState.selectedSound),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _isFading ? Colors.grey : theme.onPrimary,
-          ),
-          child: Text(isPlaying ? "Stop" : "Start"),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TimerDisplay(
+              remainingTime: _timerController.remainingTime,
+              animationController: _animationController,
+            ),
+            const SizedBox(height: 30),
+            ElevatedButton(
+              onPressed: () => _toggleTimer(appState.selectedSound),
+              child: Text(isPlaying ? "Stop" : "Start"),
+            ),
+          ],
         ),
       ),
     );
