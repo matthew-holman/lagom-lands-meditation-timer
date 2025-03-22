@@ -2,34 +2,42 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 class TimerController extends ChangeNotifier {
-  int remainingTime;
+  final int initialTime;
+  late int remainingTime;
   Timer? _timer;
   final AnimationController animationController;
-  final VoidCallback onTimerComplete; // Callback when timer ends
+  final VoidCallback onTimerComplete;
 
   TimerController({
-    required this.remainingTime,
+    required this.initialTime,
     required this.animationController,
     required this.onTimerComplete,
-  });
+  }) {
+    remainingTime = initialTime;
+  }
 
   void startTimer() {
+    _timer?.cancel();  // Ensure previous timer is canceled
+    remainingTime = initialTime;
+    animationController.duration = Duration(seconds: initialTime);
+    animationController.forward(from: 0);
+
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      remainingTime--;
+      animationController.value = 1 - (remainingTime / initialTime);
+      notifyListeners();
+
       if (remainingTime <= 0) {
-        timer.cancel();
+        stopTimer();
         onTimerComplete();
-      } else {
-        remainingTime--;
-        animationController.value = 1.0 - (remainingTime / 60.0);
-        notifyListeners();
       }
     });
   }
 
   void stopTimer() {
     _timer?.cancel();
-    remainingTime = 60; // Reset
     animationController.reset();
+    remainingTime = initialTime;
     notifyListeners();
   }
 

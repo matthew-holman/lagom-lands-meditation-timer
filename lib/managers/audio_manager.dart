@@ -3,27 +3,27 @@ import 'package:audioplayers/audioplayers.dart';
 class AudioManager {
   final AudioPlayer _audioPlayer = AudioPlayer();
   final AudioPlayer _beepPlayer = AudioPlayer();
-  bool _isFading = false;
+  bool isFading = false;
 
   Future<void> fadeIn() async {
-    if (_isFading) return;
-    _isFading = true;
+    if (isFading) return;
+    isFading = true;
     for (double vol = 0.0; vol <= 1.0; vol += 0.1) {
       await _audioPlayer.setVolume(vol);
       await Future.delayed(const Duration(milliseconds: 25));
     }
-    _isFading = false;
+    isFading = false;
   }
 
   Future<void> fadeOut() async {
-    if (_isFading) return;
-    _isFading = true;
+    if (isFading) return;
+    isFading = true;
     for (double vol = 1.0; vol >= 0.0; vol -= 0.1) {
       await _audioPlayer.setVolume(vol);
       await Future.delayed(const Duration(milliseconds: 25));
     }
     await _audioPlayer.stop();
-    _isFading = false;
+    isFading = false;
   }
 
   Future<void> playSound(String soundPath) async {

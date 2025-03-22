@@ -27,7 +27,7 @@ class TimerPageState extends State<TimerPage> with SingleTickerProviderStateMixi
     );
     _audioManager = AudioManager();
     _timerController = TimerController(
-      remainingTime: 60,
+      initialTime: 60,
       animationController: _animationController,
       onTimerComplete: _onTimerFinished,
     );
@@ -42,6 +42,8 @@ class TimerPageState extends State<TimerPage> with SingleTickerProviderStateMixi
   }
 
   Future<void> _toggleTimer(String selectedSound) async {
+    if (_audioManager.isFading) return;
+
     if (isPlaying) {
       _timerController.stopTimer();
       await _audioManager.fadeOut();
@@ -49,7 +51,6 @@ class TimerPageState extends State<TimerPage> with SingleTickerProviderStateMixi
       await _audioManager.playSound(selectedSound);
       await _audioManager.fadeIn();
       _timerController.startTimer();
-      _animationController.forward(from: 0.0);
     }
     setState(() {
       isPlaying = !isPlaying;
@@ -68,21 +69,27 @@ class TimerPageState extends State<TimerPage> with SingleTickerProviderStateMixi
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
 
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TimerDisplay(
-              remainingTime: _timerController.remainingTime,
-              animationController: _animationController,
-            ),
-            const SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: () => _toggleTimer(appState.selectedSound),
-              child: Text(isPlaying ? "Stop" : "Start"),
-            ),
-          ],
+    return ChangeNotifierProvider<TimerController>(
+      create: (_) => _timerController,
+      child: Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Consumer<TimerController>(
+                builder: (_, controller, __) =>
+                    TimerDisplay(
+                      remainingTime: controller.remainingTime,
+                      animationController: _animationController,
+                    ),
+              ),
+              const SizedBox(height: 30),
+              ElevatedButton(
+                onPressed: () => _toggleTimer(appState.selectedSound),
+                child: Text(isPlaying ? "Stop" : "Start"),
+              ),
+            ],
+          ),
         ),
       ),
     );
