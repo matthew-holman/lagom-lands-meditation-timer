@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 class TimerController extends ChangeNotifier {
-  final int initialTime;
+  int initialTime;
   late int remainingTime;
   Timer? _timer;
   final AnimationController animationController;

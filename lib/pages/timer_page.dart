@@ -77,11 +77,20 @@ class TimerPageState extends State<TimerPage> with SingleTickerProviderStateMixi
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Consumer<TimerController>(
-                builder: (_, controller, __) =>
-                    TimerDisplay(
-                      remainingTime: controller.remainingTime,
-                      animationController: _animationController,
-                    ),
+                builder: (_, controller, __) => TimerDisplay(
+                  remainingTime: controller.remainingTime,
+                  animationController: _animationController,
+                  onDurationChanged: (newDuration) {
+                    final appState = Provider.of<AppState>(context, listen: false);
+                    appState.setTimerDuration(newDuration);
+
+                    setState(() {
+                      _timerController.initialTime = newDuration;
+                      _timerController.stopTimer();
+                      _animationController.duration = Duration(seconds: newDuration);
+                    });
+                  },
+                ),
               ),
               const SizedBox(height: 30),
               ElevatedButton(
