@@ -1,0 +1,94 @@
+---
+description: Apply when working with Dart or Flutter projects to ensure senior-level code quality, proper architecture, and comprehensive testing
+globs: 
+alwaysApply: false
+---
+
+# Senior Dart & Flutter Development Standards
+
+## Context
+
+- Apply when creating or modifying Flutter/Dart code
+- Ensures consistent high-quality code structure and architecture
+- Maintains proper testing coverage and separation of concerns
+- Follows Flutter/Dart best practices and design patterns
+
+## Critical Rules
+
+### Architecture & Structure
+- Implement Clean Architecture with distinct layers:
+  - Presentation (UI/Widgets)
+  - Domain (Business Logic)
+  - Data (Repositories/Services)
+- Use feature-based folder structure
+- Implement Repository pattern for data operations
+- Use Riverpod for state management
+- Implement dependency injection using GetIt
+- Use AutoRoute for navigation
+
+### Code Quality
+- Declare explicit types for all variables and functions
+- Keep widgets small and focused (max 200 lines)
+- Avoid widget nesting beyond 3 levels
+- Use const constructors where possible
+- Extract reusable widgets into separate files
+- Implement proper error handling with custom exceptions
+
+### Testing
+- Write unit tests for all business logic
+- Include widget tests for UI components
+- Add integration tests for API modules
+- Follow AAA pattern (Arrange-Act-Assert)
+- Maintain minimum 80% test coverage
+- Mock external dependencies in tests
+
+### State Management
+- Use Freezed for immutable state
+- Implement proper state separation
+- Handle loading/error states explicitly
+- Keep controllers focused and small
+
+## Examples
+
+<example>
+// Good Widget Structure
+class ProductList extends ConsumerWidget {
+  const ProductList({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final products = ref.watch(productsProvider);
+    
+    return products.when(
+      data: (items) => ProductListView(items: items),
+      loading: () => const LoadingSpinner(),
+      error: (err, stack) => ErrorView(message: err.toString()),
+    );
+  }
+}
+</example>
+
+<example type="invalid">
+// Bad Practice - Mixed Concerns
+class ProductList extends StatefulWidget {
+  @override
+  State<ProductList> createState() => _ProductListState();
+}
+
+class _ProductListState extends State<ProductList> {
+  var products = [];
+  
+  Future<void> fetchProducts() async {
+    // Direct API call in widget
+    final response = await http.get('api/products');
+    setState(() {
+      products = jsonDecode(response.body);
+    });
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return ListView(children: products.map((p) => Text(p['name'])));
+  }
+}
+</example>

@@ -1,1 +1,125 @@
- 
+---
+description: Ensures consistent Material Design implementation across Flutter UI components following Google's Material Design guidelines
+globs: lib/**/*.dart
+alwaysApply: false
+---
+
+# Flutter Material Design Standards
+
+## Context
+
+- Apply when creating or modifying UI components in Flutter
+- Ensures consistent Material Design implementation
+- Maintains visual harmony across the application
+- Follows Google's Material Design 3 specifications
+
+## Critical Rules
+
+### Material Components
+- Use Material 3 widgets over basic Flutter widgets:
+  - Prefer `ElevatedButton` over `RawMaterialButton`
+  - Use `Card` for contained content blocks
+  - Implement `AppBar` for consistent navigation
+  - Use `BottomNavigationBar` for primary navigation
+- Apply Material theming through `ThemeData`
+- Use `MaterialApp` as the root widget
+
+### Design System
+- Follow Material Design elevation system:
+  - 0-5 for cards and surfaces
+  - 1-3 for buttons and FABs
+  - 2-4 for navigation drawers
+- Implement consistent spacing using Material's 8dp grid:
+  - Base spacing unit: 8.0
+  - Content padding: 16.0
+  - Section spacing: 24.0
+- Use Material color system:
+  - Define primary, secondary, and tertiary colors
+  - Include light/dark variants
+  - Implement proper contrast ratios
+
+### Typography
+- Use Material type scale:
+  - Display: Large, Medium, Small
+  - Headline: Large, Medium, Small
+  - Title: Large, Medium, Small
+  - Label: Large, Medium, Small
+  - Body: Large, Medium, Small
+- Maintain consistent text styles through `TextTheme`
+
+### Component Guidelines
+- Follow Material motion patterns for animations
+- Implement proper touch targets (minimum 48x48dp)
+- Use standard iconography from `Icons` class
+- Maintain consistent corner radius across components
+- Apply proper state layers (pressed, hovered, focused)
+
+## Examples
+
+<example>
+// Good Implementation - Proper Material Design Usage
+class ProductCard extends StatelessWidget {
+  final Product product;
+
+  const ProductCard({required this.product, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.all(8.0),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              product.name,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 8.0),
+            Text(
+              product.description,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: () => _handlePurchase(),
+              child: const Text('Buy Now'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+</example>
+
+<example type="invalid">
+// Bad Implementation - Inconsistent with Material Design
+class ProductCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(),
+        borderRadius: BorderRadius.circular(5), // Non-standard radius
+      ),
+      padding: const EdgeInsets.all(10), // Non-standard spacing
+      child: Column(
+        children: [
+          Text(
+            'Product Name',
+            style: TextStyle(fontSize: 18), // Hard-coded text style
+          ),
+          Container(height: 10), // Non-standard spacing
+          RawMaterialButton( // Should use ElevatedButton
+            onPressed: () {},
+            child: Text('Buy'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+</example> 
